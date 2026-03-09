@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avlija - Računi</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f9f9f9; margin: 0; }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #1565c0;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            background: #e8f0fe;
+            color: #1565c0;
+            border: 1px solid #c5d8f8;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .tab-btn.active { background: #1565c0; color: white; }
+        .tab-btn:hover:not(.active) { background: #d0e3ff; }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .page-header h2 { margin: 0; font-size: 22px; }
+
+        .btn-novo {
+            padding: 7px 16px;
+            font-size: 14px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-novo:hover { background: #0d47a1; }
+
+        .row-top {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group label { font-size: 13px; font-weight: bold; color: #444; }
+        .form-group input {
+            padding: 7px 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+        }
+
+        #targetDate { width: 150px; }
+
+        .row-bottom {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .bill-input-group { display: flex; flex-direction: column; gap: 4px; }
+        .bill-input-group label { font-size: 13px; font-weight: bold; color: #444; }
+        .bill-input-row { display: flex; gap: 6px; }
+        .bill-input-row input {
+            padding: 7px 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 130px;
+        }
+
+        .btn-add {
+            padding: 7px 14px;
+            font-size: 14px;
+            background: #4a90d9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-add:hover { background: #357abd; }
+
+        .bill-tags-panel { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; }
+        .bill-tags-panel label { font-size: 13px; font-weight: bold; color: #444; }
+
+        .bill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 38px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 6px 10px;
+            align-items: center;
+        }
+
+        .bill-tag {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #e8f0fe;
+            border: 1px solid #a8c4f0;
+            color: #2a5db0;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .bill-tag .remove { cursor: pointer; color: #888; font-size: 15px; line-height: 1; }
+        .bill-tag .remove:hover { color: #c00; }
+        .bill-tags-empty { color: #aaa; font-size: 12px; }
+
+        .actions { margin-top: 4px; display: flex; gap: 10px; }
+
+        .btn-primary {
+            padding: 9px 18px;
+            font-size: 14px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #1b5e20; }
+
+        .btn-save {
+            display: none;
+            padding: 9px 18px;
+            font-size: 14px;
+            background: #6a1b9a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-save:hover { background: #4a148c; }
+
+        .btn-print {
+            display: none;
+            padding: 9px 18px;
+            font-size: 14px;
+            background: #37474f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-print:hover { background: #263238; }
+
+        .btn-search {
+            padding: 7px 18px;
+            font-size: 14px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            align-self: flex-end;
+        }
+        .btn-search:hover { background: #1b5e20; }
+
+        .btn-delete {
+            padding: 9px 18px;
+            font-size: 14px;
+            background: #c62828;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-delete:hover { background: #b71c1c; }
+
+        .error-msg { color: red; font-weight: bold; margin-top: 12px; display: none; }
+        .success-msg { color: #2e7d32; font-size: 13px; margin-top: 8px; display: none; }
+
+        table { border-collapse: collapse; width: 100%; margin-top: 12px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        th, td { border: 1px solid #e0e0e0; padding: 9px 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-size: 13px; }
+        td { font-size: 13px; }
+        tr:hover td { background: #fafafa; }
+        tr.selected td { background: #e3f2fd !important; }
+        tr.clickable { cursor: pointer; }
+
+        .pregled-filters {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin: 24px 0 8px 0;
+        }
+
+        .pregled-actions {
+            display: none;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .pregled-actions.visible { display: flex; }
+
+        /* edit bills panel */
+        .edit-bills-panel {
+            display: none;
+            margin-top: 16px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+        .edit-bills-panel.visible { display: block; }
+        .edit-bills-panel label { font-size: 13px; font-weight: bold; color: #444; display: block; margin-bottom: 6px; }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 24px 28px;
+            max-width: 380px;
+            width: 90%;
+            font-family: sans-serif;
+        }
+        .modal-icon {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        .modal-message {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 8px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #1565c0;
+            color: white;
+            font-weight: bold;
+        }
+        .modal-btn:hover { background: #0d47a1; }
+        .modal-btn-cancel {
+            padding: 8px 20px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            background: white;
+            color: #555;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .modal-btn-cancel:hover { background: #f5f5f5; }
+        .modal-btn-danger {
+            padding: 8px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #c62828;
+            color: white;
+            font-weight: bold;
+        }
+        .modal-btn-danger:hover { background: #b71c1c; }
+
+
+    </style>
+</head>
+<body>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmOverlay">
+    <div class="modal-box">
+        <div class="modal-icon">🗑</div>
+        <div class="modal-message" id="confirmMessage"></div>
+        <div class="modal-actions">
+            <button class="modal-btn-cancel" onclick="closeConfirm(false)">Odustani</button>
+            <button class="modal-btn-danger" onclick="closeConfirm(true)">Obriši</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <div class="modal-icon" id="modalIcon">⚠️</div>
+        <div class="modal-message" id="modalMessage"></div>
+        <div class="modal-actions">
+            <button class="modal-btn" onclick="closeModal()">U redu</button>
+        </div>
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('grupni', this)">Grupni Računi</button>
+    <button class="tab-btn" onclick="switchTab('pregled', this)">Pregled Računa</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 1: GRUPNI RAČUNI
+════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-grupni">
+
+    <div class="page-header">
+        <h2>Grupni Račun: <span id="invoiceNumber">—</span></h2>
+        <button class="btn-novo" onclick="createNewInvoice()">+ Novi</button>
+    </div>
+
+    <div class="row-top">
+        <div class="form-group">
+            <label>Datum:</label>
+            <input type="date" id="targetDate" onchange="createNewInvoice(true)">
+        </div>
+        <div class="form-group">
+            <label>Konobar ID:</label>
+            <input type="number" id="waiterId" placeholder="ID konobara" style="width:120px;">
+        </div>
+    </div>
+
+    <div class="row-bottom">
+        <div class="bill-input-group">
+            <label>Dodaj račun:</label>
+            <div class="bill-input-row">
+                <input type="number" id="billInput" placeholder="br. računa" onkeydown="handleBillKey(event)">
+                <button class="btn-add" onclick="addBill()">+ Dodaj</button>
+            </div>
+        </div>
+        <div class="bill-tags-panel">
+            <label>Odabrani računi:</label>
+            <div class="bill-tags" id="billTags">
+                <span class="bill-tags-empty">Nema odabranih računa</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-save" id="saveBtn" onclick="saveInvoice()">💾 Sačuvaj</button>
+        <button class="btn-print" id="printBtn" onclick="printInvoice()">🖨 Štampaj</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Šifra Artikla</th>
+            <th>Naziv Artikla</th>
+            <th>Količina</th>
+            <th>Cena</th>
+            <th>Ukupno</th>
+        </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 2: PREGLED RAČUNA
+════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-pregled">
+
+    <div class="page-header">
+        <h2>Pregled Računa</h2>
+    </div>
+
+    <div class="pregled-filters">
+        <div class="form-group">
+            <label>Datum:</label>
+            <input type="date" id="pregledDate">
+        </div>
+        <div class="form-group">
+            <label>Broj računa:</label>
+            <input type="number" id="pregledNumber" placeholder="svi" style="width:90px;">
+        </div>
+        <button class="btn-search" onclick="loadPregled()">Prikaži</button>
+    </div>
+
+    <div class="error-msg" id="pregledError"></div>
+    <div class="success-msg" id="pregledSuccess"></div>
+
+    <!-- Invoice list -->
+    <div id="pregledTableWrap" style="display:none;">
+        <div class="section-title">Grupni računi</div>
+        <table>
+            <thead>
+            <tr>
+                <th>Br. računa</th>
+                <th>Datum</th>
+                <th>Ukupno</th>
+                <th>Plaćeno</th>
+            </tr>
+            </thead>
+            <tbody id="pregledBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Linked bills + edit -->
+    <div id="billsSection" style="display:none;">
+        <div class="section-title">Vezani računi — <span id="billsSectionTitle"></span></div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Br. računa</th>
+                <th>Datum</th>
+                <th>Konobar</th>
+                <th>Ukupno</th>
+            </tr>
+            </thead>
+            <tbody id="billsBody"></tbody>
+        </table>
+
+        <!-- Edit bills panel -->
+        <div class="edit-bills-panel" id="editBillsPanel">
+            <label>Izmeni vezane račune:</label>
+            <div class="bill-input-row" style="margin-bottom:10px;">
+                <input type="number" id="pregledWaiterId" placeholder="Konobar ID" style="width:110px;">
+                <input type="number" id="pregledBillInput" placeholder="br. računa" onkeydown="handlePregledBillKey(event)">
+                <button class="btn-add" onclick="addPregledBill()">+ Dodaj</button>
+            </div>
+            <div class="bill-tags" id="pregledBillTags" style="margin-bottom:12px;">
+                <span class="bill-tags-empty">Nema odabranih računa</span>
+            </div>
+        </div>
+
+        <div class="pregled-actions" id="pregledActions">
+            <button class="btn-primary" onclick="toggleEditBills()">✏️ Izmeni račune</button>
+            <button class="btn-save" id="pregledSaveBtn" style="display:inline-block;" onclick="pregledSave()">💾 Sačuvaj</button>
+            <button class="btn-print" id="pregledPrintBtn" style="display:inline-block;" onclick="pregledPrint()">🖨 Štampaj</button>
+            <button class="btn-delete" onclick="deleteInvoice()">🗑 Obriši</button>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmOverlay">
+    <div class="modal-box">
+        <div class="modal-icon">🗑</div>
+        <div class="modal-message" id="confirmMessage"></div>
+        <div class="modal-actions">
+            <button class="modal-btn-cancel" onclick="closeConfirm(false)">Odustani</button>
+            <button class="modal-btn-danger" onclick="closeConfirm(true)">Obriši</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <div class="modal-icon" id="modalIcon">⚠️</div>
+        <div class="modal-message" id="modalMessage"></div>
+        <div class="modal-actions">
+            <button class="modal-btn" onclick="closeModal()">U redu</button>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script src="shared.js"></script>
+<script src="invoice.js"></script>
+<script>
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeConfirm(false);
+    });
+
+    function switchTab(name, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // ── TAB 1: GRUPNI RAČUNI ───────────────────────────────────────
+    let billNumbers = [];   // display only
+    let billEntries = [];   // [{id, waiterId, number}]
+    let invoiceSaved = false;
+    let lastData = [];
+    let lastDate = '';
+    let lastBills = '';
+    let currentInvoiceNumber = null;
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg; el.style.display = 'block';
+    }
+    function clearError() {
+        const el = document.getElementById('errorMsg');
+        el.textContent = ''; el.style.display = 'none';
+    }
+
+    function resetState() {
+        billNumbers = []; billEntries = []; lastData = []; currentInvoiceNumber = null; invoiceSaved = false;
+        const invNum = document.getElementById('invoiceNumber');
+        if (invNum) invNum.textContent = '—';
+        const rb = document.getElementById('resultBody');
+        if (rb) rb.innerHTML = '';
+        ['saveBtn', 'printBtn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = 'none';
+                el.disabled = false;
+                if (id === 'saveBtn') { el.textContent = '💾 Sačuvaj'; el.style.background = '#6a1b9a'; }
+            }
+        });
+        renderTags(); clearError();
+    }
+
+    async function loadMaxDate() {
+        try {
+            const res = await fetch(`${API_BASE}/bills/max-date`);
+            const data = await res.json();
+            if (data.max_date) {
+                const d = data.max_date.split('T')[0];
+                document.getElementById('targetDate').value = d;
+                document.getElementById('pregledDate').value = d;
+                if (document.getElementById('mTargetDate')) document.getElementById('mTargetDate').value = d;
+            }
+        } catch (err) {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('targetDate').value = today;
+            document.getElementById('pregledDate').value = today;
+            if (document.getElementById('mTargetDate')) document.getElementById('mTargetDate').value = today;
+        }
+        await createNewInvoice(true);
+    }
+
+    async function createNewInvoice(silent = false) {
+        const date = document.getElementById('targetDate').value;
+        resetState();
+        try {
+            const res = await fetch(`${API_BASE}/invoice/next-number?target_date=${date}`);
+            const data = await res.json();
+            currentInvoiceNumber = data.number;
+            document.getElementById('invoiceNumber').textContent = `#${currentInvoiceNumber}`;
+        } catch (err) {
+            if (!silent) showModal("Greška pri učitavanju broja računa.", "⚠️");
+        }
+    }
+
+    function handleBillKey(e) { if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); addBill(); } }
+
+    async function addBill() {
+        const input = document.getElementById('billInput');
+        const val = input.value.trim();
+        if (!val || isNaN(val)) return;
+        const num = parseInt(val);
+        if (billEntries.some(e => e.number === num)) {
+            showError(`Račun ${num} je već dodan.`);
+            input.value = ''; input.focus(); return;
+        }
+
+        const date = document.getElementById('targetDate').value;
+        const waiterId = document.getElementById('waiterId').value.trim();
+        if (!waiterId) { showError('Unesite ID konobara.'); return; }
+        const params = new URLSearchParams();
+        params.append("target_date", date);
+        params.append("waiter_id", waiterId);
+        params.append("bill_numbers", num);
+
+        try {
+            const valRes = await fetch(`${API_BASE}/bills/validate?${params}`);
+            const valData = await valRes.json();
+            if (valData.missing.length > 0) {
+                showError(`Račun ${num} nije pronađen za datum ${fmtDate(date)} konobar ${waiterId}.`);
+            } else {
+                const linkRes = await fetch(`${API_BASE}/bills/check-linked?target_date=${date}&waiter_id=${waiterId}&bill_number=${num}`);
+                const linkData = await linkRes.json();
+                if (linkData.invoice_number !== null) {
+                    showError(`Račun ${num} je već u grupnom računu ${linkData.invoice_number} za datum ${fmtDate(date)}.`);
+                } else {
+                    const resolveRes = await fetch(`${API_BASE}/bills/resolve?target_date=${date}&waiter_id=${waiterId}&bill_number=${num}`);
+                    const resolveData = await resolveRes.json();
+                    billEntries.push({ id: resolveData.id, waiterId: parseInt(waiterId), number: num });
+                    billNumbers.push(num);
+                    clearError();
+                    renderTags(); await refreshSummary();
+                }
+            }
+        } catch (err) { showModal("Greška pri konekciji na API.", "🔌"); }
+        input.value = ''; input.focus();
+    }
+
+    async function removeBill(num) { billNumbers = billNumbers.filter(n => n !== num); billEntries = billEntries.filter(e => e.number !== num); renderTags(); await refreshSummary(); }
+
+    function renderTags() {
+        const c = document.getElementById('billTags');
+        c.innerHTML = '';
+        if (billNumbers.length === 0) { c.innerHTML = '<span class="bill-tags-empty">Nema odabranih računa</span>'; return; }
+        billEntries.forEach(e => {
+            const tag = document.createElement('div');
+            tag.className = 'bill-tag';
+            tag.innerHTML = `${e.number}<small style="opacity:.7"> k${e.waiterId}</small> <span class="remove" onclick="removeBill(${e.number})">×</span>`;
+            c.appendChild(tag);
+        });
+    }
+
+    async function refreshSummary() {
+        document.getElementById('resultBody').innerHTML = '';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('printBtn').style.display = 'none';
+        if (billEntries.length === 0) { return; }
+
+        const date = document.getElementById('targetDate').value;
+        const params = new URLSearchParams();
+        billEntries.forEach(e => params.append("bill_ids", e.id));
+
+        try {
+            const response = await fetch(`${API_BASE}/bills/summary-by-ids?${params}`);
+            const data = await response.json();
+            lastData = data;
+            lastDate = fmtDate(date);
+            lastBills = billEntries.map(e => e.number).join(', ');
+
+            const body = document.getElementById('resultBody');
+            body.innerHTML = '';
+            data.forEach(row => {
+                body.innerHTML += `<tr><td>${row.articleid}</td><td>${row.articlename}</td><td>${formatNum(row.total_qty)}</td><td>${formatNum(row.total_price)}</td><td>${formatNum(row.total)}</td></tr>`;
+            });
+            const grandTotal = data.reduce((sum, r) => sum + Number(r.total), 0);
+            body.innerHTML += `<tr style="font-weight:bold;border-top:2px solid #aaa;"><td colspan="4" style="text-align:right;">UKUPNO:</td><td>${formatNum(grandTotal)}</td></tr>`;
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('printBtn').style.display = 'inline-block';
+        } catch (err) { showModal("Greška pri konekciji na API.", "🔌"); }
+    }
+
+    async function saveInvoice() {
+        if (lastData.length === 0) { showError('Nema podataka za snimanje.'); return; }
+        const grandTotal = lastData.reduce((sum, r) => sum + Number(r.total), 0);
+        const date = document.getElementById('targetDate').value;
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = '...';
+        try {
+            const params = new URLSearchParams();
+            params.append("target_date", date);
+            params.append("total", grandTotal);
+            billEntries.forEach(e => params.append("bill_ids", e.id));
+            const res = await fetch(`${API_BASE}/invoice/save-by-ids?${params}`, { method: 'POST' });
+            const invoiceData = await res.json();
+            currentInvoiceNumber = invoiceData.number;
+            document.getElementById('invoiceNumber').textContent = `#${currentInvoiceNumber}`;
+            // Show success, lock save, wait for Novi
+            saveBtn.textContent = '✔ Sačuvano';
+            saveBtn.style.background = '#2e7d32';
+            invoiceSaved = true;
+        } catch (err) {
+            console.error("Could not save invoice:", err);
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Sačuvaj';
+        }
+    }
+
+    async function printInvoice() {
+        if (!invoiceSaved) await saveInvoice();
+        openInvoice(lastData, lastDate, lastBills, currentInvoiceNumber);
+    }
+
+    // ── TAB 2: PREGLED RAČUNA ──────────────────────────────────────
+    let selectedInvoice = null;
+    let pregledBillNumbers = [];
+    let pregledBillEntries = [];  // [{id, waiterId, number}]
+    let editMode = false;
+
+    async function loadPregled() {
+        const date = document.getElementById('pregledDate').value;
+        const numVal = document.getElementById('pregledNumber').value.trim();
+        const errEl = document.getElementById('pregledError');
+        errEl.style.display = 'none';
+        document.getElementById('billsSection').style.display = 'none';
+        document.getElementById('pregledTableWrap').style.display = 'none';
+        selectedInvoice = null;
+
+        if (!date) { errEl.textContent = 'Molimo unesite datum.'; errEl.style.display = 'block'; return; }
+
+        try {
+            const params = new URLSearchParams();
+            params.append("date_from", date);
+            params.append("date_to", date);
+            if (numVal) params.append("invoice_number", numVal);
+
+            const res = await fetch(`${API_BASE}/invoice/list?${params}`);
+            const data = await res.json();
+            const body = document.getElementById('pregledBody');
+            body.innerHTML = '';
+
+            if (data.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">Nema pronađenih računa.</td></tr>';
+            } else {
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'clickable';
+                    tr.innerHTML = `<td>${row.number}</td><td>${fmtDate(row.ddate)}</td><td>${formatNum(row.total || 0)}</td><td>${row.paid ? '✔' : '—'}</td>`;
+                    tr.onclick = () => selectInvoice(row, tr);
+                    body.appendChild(tr);
+                });
+            }
+            document.getElementById('pregledTableWrap').style.display = 'block';
+
+            // If only one result, auto-select it
+            if (data.length === 1) selectInvoice(data[0], body.querySelector('tr'));
+
+        } catch (err) { errEl.textContent = 'Greška pri učitavanju računa.'; errEl.style.display = 'block'; }
+    }
+
+    async function selectInvoice(invoice, tr) {
+        // Highlight row
+        document.querySelectorAll('#pregledBody tr').forEach(r => r.classList.remove('selected'));
+        tr.classList.add('selected');
+        selectedInvoice = invoice;
+        editMode = false;
+
+        // Load linked bills
+        try {
+            const res = await fetch(`${API_BASE}/invoice/${invoice.id}/bills-detail`);
+            const bills = await res.json();
+
+            document.getElementById('billsSectionTitle').textContent = `Grupni račun #${invoice.number} — ${fmtDate(invoice.ddate)}`;
+
+            const body = document.getElementById('billsBody');
+            body.innerHTML = '';
+            pregledBillNumbers = [];
+            pregledBillEntries = [];
+
+            if (bills.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">Nema vezanih računa.</td></tr>';
+            } else {
+                bills.forEach(b => {
+                    pregledBillNumbers.push(b.number);
+                    pregledBillEntries.push({ id: b.id, waiterId: b.waiterid, number: b.number });
+                    body.innerHTML += `<tr><td>${b.number}</td><td>${fmtDate(b.ddate)}</td><td>${b.waiterid || '—'}</td><td>${formatNum(b.total || 0)}</td></tr>`;
+                });
+            }
+
+            // Pre-fill waiter from first linked bill
+            const pregledWaiterEl = document.getElementById('pregledWaiterId');
+            if (pregledWaiterEl && bills.length > 0 && bills[0].waiterid) {
+                pregledWaiterEl.value = bills[0].waiterid;
+            }
+
+            renderPregledTags();
+            document.getElementById('editBillsPanel').classList.remove('visible');
+            document.getElementById('pregledActions').classList.add('visible');
+            document.getElementById('billsSection').style.display = 'block';
+
+            // Load summary data for printing using IDs — no waiter needed
+            if (pregledBillEntries.length > 0) {
+                const params = new URLSearchParams();
+                pregledBillEntries.forEach(e => params.append("bill_ids", e.id));
+                const summaryRes = await fetch(`${API_BASE}/bills/summary-by-ids?${params}`);
+                pregledLastData = await summaryRes.json();
+                pregledLastDate = fmtDate(invoice.ddate.toString().split('T')[0]);
+            }
+
+        } catch (err) { console.error('selectInvoice error:', err); showModal("Greška pri učitavanju vezanih računa: " + err.message, "⚠️"); }
+    }
+
+    function toggleEditBills() {
+        editMode = !editMode;
+        const panel = document.getElementById('editBillsPanel');
+        if (editMode) {
+            panel.classList.add('visible');
+            renderPregledTags();
+        } else {
+            panel.classList.remove('visible');
+        }
+    }
+
+    function handlePregledBillKey(e) { if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); addPregledBill(); } }
+
+    async function addPregledBill() {
+        const input = document.getElementById('pregledBillInput');
+        const val = input.value.trim();
+        if (!val || isNaN(val)) return;
+        const num = parseInt(val);
+        if (pregledBillEntries.some(e => e.number === num)) { input.value = ''; input.focus(); return; }
+
+        const date = selectedInvoice.ddate.split('T')[0];
+        const waiterId = document.getElementById('pregledWaiterId').value.trim();
+        if (!waiterId) { showModal('Unesite ID konobara.', '⚠️'); return; }
+        const params = new URLSearchParams();
+        params.append("target_date", date);
+        params.append("waiter_id", waiterId);
+        params.append("bill_numbers", num);
+
+        try {
+            const valRes = await fetch(`${API_BASE}/bills/validate?${params}`);
+            const valData = await valRes.json();
+            if (valData.missing.length > 0) {
+                showModal(`Račun ${num} nije pronađen za datum ${fmtDate(date)} konobar ${waiterId}.`, '🔍');
+            } else {
+                const linkRes = await fetch(`${API_BASE}/bills/check-linked?target_date=${date}&waiter_id=${waiterId}&bill_number=${num}`);
+                const linkData = await linkRes.json();
+                if (linkData.invoice_number !== null && linkData.invoice_number !== selectedInvoice.number) {
+                    showModal(`Račun ${num} je već u grupnom računu ${linkData.invoice_number} za datum ${fmtDate(date)}.`, 'ℹ️');
+                } else {
+                    const resolveRes = await fetch(`${API_BASE}/bills/resolve?target_date=${date}&waiter_id=${waiterId}&bill_number=${num}`);
+                    const resolveData = await resolveRes.json();
+                    pregledBillEntries.push({ id: resolveData.id, waiterId: parseInt(waiterId), number: num });
+                    pregledBillNumbers.push(num);
+                    renderPregledTags();
+                }
+            }
+        } catch (err) { showModal("Greška pri konekciji na API.", "🔌"); }
+        input.value = ''; input.focus();
+    }
+
+    function removePregledBill(num) {
+        pregledBillNumbers = pregledBillNumbers.filter(n => n !== num);
+        pregledBillEntries = pregledBillEntries.filter(e => e.number !== num);
+        renderPregledTags();
+    }
+
+    function renderPregledTags() {
+        const c = document.getElementById('pregledBillTags');
+        c.innerHTML = '';
+        if (pregledBillEntries.length === 0) { c.innerHTML = '<span class="bill-tags-empty">Nema odabranih računa</span>'; return; }
+        pregledBillEntries.forEach(e => {
+            const tag = document.createElement('div');
+            tag.className = 'bill-tag';
+            tag.innerHTML = `${e.number}<small style="opacity:.7"> k${e.waiterId}</small> <span class="remove" onclick="removePregledBill(${e.number})">×</span>`;
+            c.appendChild(tag);
+        });
+    }
+
+    let pregledLastData = [];
+    let pregledLastDate = '';
+
+    async function pregledSave() {
+        if (!selectedInvoice) return;
+        if (pregledBillEntries.length === 0) { showModal('Nema odabranih računa.', '📋'); return; }
+
+        try {
+            const params = new URLSearchParams();
+            pregledBillEntries.forEach(e => params.append("bill_ids", e.id));
+            const summaryRes = await fetch(`${API_BASE}/bills/summary-by-ids?${params}`);
+            const summaryData = await summaryRes.json();
+            const grandTotal = summaryData.reduce((sum, r) => sum + Number(r.total), 0);
+
+            const saveParams = new URLSearchParams();
+            saveParams.append("invoice_id", selectedInvoice.id);
+            saveParams.append("total", grandTotal);
+            pregledBillEntries.forEach(e => saveParams.append("bill_ids", e.id));
+            await fetch(`${API_BASE}/invoice/update-by-ids?${saveParams}`, { method: 'POST' });
+
+            pregledLastData = summaryData;
+            pregledLastDate = fmtDate(selectedInvoice.ddate.split('T')[0]);
+            await loadPregled();
+            const s = document.getElementById('pregledSuccess');
+            s.textContent = '✔ Račun sačuvan.';
+            s.style.display = 'block';
+            setTimeout(() => { s.style.display = 'none'; }, 3000);
+
+        } catch (err) { console.error("Greška pri snimanju:", err); }
+    }
+
+    async function pregledPrint() {
+        if (!selectedInvoice) return;
+        if (pregledLastData.length === 0) { showModal('Učitajte račun pre štampanja.', 'ℹ️'); return; }
+        await pregledSave();
+        openInvoice(pregledLastData, pregledLastDate, pregledBillNumbers.join(', '), selectedInvoice.number);
+    }
+
+    async function deleteInvoice() {
+        if (!selectedInvoice) return;
+        const confirmed = await showConfirm('Jeste li sigurni da želite da obrišete ceo grupni račun?');
+        if (!confirmed) return;
+        try {
+            const res = await fetch(`${API_BASE}/invoice/${selectedInvoice.id}`, { method: 'DELETE' });
+            if (res.ok) {
+                document.getElementById('billsSection').style.display = 'none';
+                document.getElementById('pregledActions').classList.remove('visible');
+                selectedInvoice = null;
+                pregledBillNumbers = [];
+                await loadPregled();
+            } else {
+                showModal('Greška pri brisanju računa.', '❌');
+            }
+        } catch (err) { console.error("Greška pri brisanju:", err); }
+    }
+
+    loadMaxDate();
+</script>
+</body>
+</html>
