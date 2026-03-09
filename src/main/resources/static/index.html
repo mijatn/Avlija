@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avlija</title>
+</head>
+<body>
+<script>
+    var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 600;
+    window.location.replace(isMobile ? 'mobile.html' : 'desktop.html');
+</script>
+</body>
+</html>
