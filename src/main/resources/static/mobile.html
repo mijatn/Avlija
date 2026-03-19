@@ -615,11 +615,12 @@
         <h2>Grupni Račun: <span id="mInvoiceNumber">—</span></h2>
     </div>
 
-    <div class="m-date-row">
-        <label>Datum:</label>
-        <input type="date" id="mTargetDate" onchange="mOnDateChange()">
-        <label style="margin-top:10px;">Konobar ID:</label>
-        <input type="number" id="mWaiterId" placeholder="ID konobara" style="font-size:18px;padding:8px;border:1px solid #ccc;border-radius:6px;width:100%;box-sizing:border-box;">
+    <!-- Hidden inputs still used by mAddBill logic -->
+    <input type="hidden" id="mTargetDate">
+    <input type="hidden" id="mWaiterId">
+
+    <div class="m-date-row" id="mScannedInfo" style="display:none;background:#f0f4ff;border-radius:8px;padding:10px;margin-bottom:8px;font-size:15px;">
+        <div>📅 <strong id="mScannedDate">—</strong> &nbsp;&nbsp; 👤 Konobar: <strong id="mScannedWaiter">—</strong></div>
     </div>
 
     <div class="m-input-row">
@@ -671,25 +672,20 @@
         document.getElementById('mSuccess').style.display = 'none';
     }
 
-    function mOnDateChange() {
-        mNovo();
-    }
+    function mOnDateChange() { }  // date now comes from scan
 
     async function mNovo() {
         mBillNumbers = []; mBillEntries = []; mTotal = 0; mSaved = false;
         mRenderTags();
         document.getElementById('mTotalBox').style.display = 'none';
+        document.getElementById('mScannedInfo').style.display = 'none';
+        document.getElementById('mTargetDate').value = '';
+        document.getElementById('mWaiterId').value = '';
         const sb = document.getElementById('mSaveBtn');
         sb.style.display = 'none'; sb.disabled = false;
         sb.textContent = '💾 Sačuvaj'; sb.style.background = '#6a1b9a';
+        document.getElementById('mInvoiceNumber').textContent = '—';
         mClearMessages();
-        const date = document.getElementById('mTargetDate').value;
-        if (!date) return;
-        try {
-            const res = await fetch(`${API_BASE}/invoice/next-number?target_date=${date}`);
-            const data = await res.json();
-            document.getElementById('mInvoiceNumber').textContent = `#${data.number}`;
-        } catch(e) {}
     }
 
     async function mAddBill() {
@@ -700,8 +696,8 @@
         const date = document.getElementById('mTargetDate').value;
         const waiterId = document.getElementById('mWaiterId').value.trim();
         if (!waiterId) {
-            mShowError('Unesite ID konobara.');
-            return { ok: false, msg: 'Unesite ID konobara.' };
+            mShowError('Skenirajte račun da biste učitali datum i konobara.');
+            return { ok: false, msg: 'Skenirajte račun da biste učitali datum i konobara.' };
         }
         if (mBillEntries.some(e => e.number === num)) {
             const msg = `Račun ${num} je već dodan.`;
@@ -736,6 +732,14 @@
                     mClearMessages();
                     mRenderTags();
                     await mRefreshTotal();
+                    // Update invoice number preview on first bill
+                    if (mBillEntries.length === 1) {
+                        try {
+                            const invRes = await fetch(`${API_BASE}/invoice/next-number?target_date=${date}`);
+                            const invData = await invRes.json();
+                            document.getElementById('mInvoiceNumber').textContent = `#${invData.number}`;
+                        } catch(e) {}
+                    }
                     input.value = ''; input.focus();
                     return { ok: true };
                 }
@@ -994,45 +998,66 @@
             dbg('text: [' + text + ']');
             status.classList.remove('visible');
 
-            // Split on FIRST comma only — total may contain commas e.g. "3115,10,800.00"
-            const commaIdx = text.indexOf(',');
-            const billStr  = commaIdx >= 0 ? text.substring(0, commaIdx).trim() : text.trim();
-            const totalStr = commaIdx >= 0 ? text.substring(commaIdx + 1).trim() : 'NULL';
-            const billNum  = /^\d+$/.test(billStr)  ? parseInt(billStr)   : null;
+            // Parse pipe-separated response: billNum|total|date|waiterId
+            const parts    = text.split('|').map(p => p.trim());
+            const billStr   = parts[0] || 'NULL';
+            const totalStr  = parts[1] || 'NULL';
+            const dateStr   = parts[2] || 'NULL';  // DD.MM.YYYY
+            const waiterStr = parts[3] || 'NULL';
+
+            const billNum  = /^\d+$/.test(billStr) ? parseInt(billStr) : null;
+            const waiterNum = /^\d+$/.test(waiterStr) ? parseInt(waiterStr) : null;
+
+            // Parse date DD.MM.YYYY → YYYY-MM-DD
+            let scanDate = null;
+            if (dateStr !== 'NULL' && /^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
+                const [dd, mm, yyyy] = dateStr.split('.');
+                scanDate = `${yyyy}-${mm}-${dd}`;
+            }
+
+            // Parse total — handle both US (10,800.00) and European (10.800,00) formats
             const totalClean = (() => {
-                // Handle European format: 10,800,00 → last comma is decimal → 10800.00
-                // Handle US format: 10,800.00 → commas are thousands → 10800.00
                 const lastComma = totalStr.lastIndexOf(',');
                 const lastDot   = totalStr.lastIndexOf('.');
                 if (lastComma > lastDot && /,\d{2}$/.test(totalStr)) {
-                    // Last comma followed by exactly 2 digits = European decimal separator
                     return totalStr.substring(0, lastComma).replace(/[.,]/g, '') + '.' + totalStr.substring(lastComma + 1);
                 }
-                // US format or no commas — just strip commas
                 return totalStr.replace(/,/g, '');
             })();
             const scanTotal = /^[\d.]+$/.test(totalClean) ? parseFloat(totalClean) : null;
 
-            dbg('bill=' + billNum + ' scannedTotal=' + scanTotal);
+            dbg('bill=' + billNum + ' total=' + scanTotal + ' date=' + scanDate + ' waiter=' + waiterNum);
 
-            if (!billNum) {
-                // No bill number found at all
+            // Validate all required fields scanned
+            const missing = [];
+            if (!billNum)  missing.push('broj računa');
+            if (!scanDate) missing.push('datum');
+            if (!waiterNum) missing.push('konobar ID');
+
+            if (missing.length > 0) {
                 scanAttempt++;
                 if (scanAttempt >= 3) {
                     scanAttempt = 0;
-                    showScanError('Nije moguće pročitati broj računa. Unesite ručno.');
+                    showScanError('Nije moguće pročitati: ' + missing.join(', ') + '. Pokušajte ponovo.');
                 } else {
                     status.style.background = 'rgba(150,80,0,0.8)';
-                    status.textContent = '⚠ Broj računa nije pronađen (' + scanAttempt + '/3) — ponovi skeniranje';
+                    status.textContent = '⚠ Nedostaje: ' + missing.join(', ') + ' (' + scanAttempt + '/3)';
                     status.classList.add('visible');
                     setTimeout(() => { status.classList.remove('visible'); captureBtn.disabled = false; }, 2000);
                 }
                 return;
             }
 
+            // All fields found — populate hidden inputs and info display
+            document.getElementById('mTargetDate').value = scanDate;
+            document.getElementById('mWaiterId').value   = waiterNum;
+            document.getElementById('mScannedDate').textContent   = dateStr;
+            document.getElementById('mScannedWaiter').textContent = waiterNum;
+            document.getElementById('mScannedInfo').style.display = 'block';
+
             // We have a bill number — verify total against DB
-            const date = document.getElementById('mTargetDate').value;
-            const waiterId = document.getElementById('mWaiterId').value.trim();
+            const date     = scanDate;
+            const waiterId = String(waiterNum);
             const totalRes  = await fetch(`${API_BASE}/bills/total?target_date=${date}&waiter_id=${waiterId}&bill_number=${billNum}`);
             const totalData = await totalRes.json();
             const dbTotal   = totalData.total !== null ? parseFloat(totalData.total) : null;
