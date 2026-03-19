@@ -819,9 +819,6 @@
 
 
     // ── SCAN / OCR ─────────────────────────────────────────────
-    // ⚠️ API key visible in browser - internal network only
-    // ANTHROPIC_API_KEY is defined in config.js
-    const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
     let cameraStream  = null;
     let scanAttempt   = 0;  // attempts for current bill, reset on success or close
@@ -962,26 +959,11 @@
         status.textContent = '🌐 Šaljem Claude...';
 
         try {
-            dbg('fetch START key=' + ANTHROPIC_API_KEY.substring(0,8) + '...');
-            const res = await fetch(ANTHROPIC_URL, {
+            dbg('fetch START /ocr/scan');
+            const res = await fetch(`${API_BASE}/ocr/scan`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': ANTHROPIC_API_KEY,
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerous-direct-browser-access': 'true'
-                },
-                body: JSON.stringify({
-                    model: 'claude-haiku-4-5-20251001',
-                    max_tokens: 20,
-                    messages: [{
-                        role: 'user',
-                        content: [
-                            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-                            { type: 'text', text: 'This is a restaurant receipt. Find two values: 1) the bill number printed after "RACUN br." or "RACUN BR" or "Racun br", 2) the total amount printed on the line that contains "TOTAL" or "UKUPNO" or "Ukupno" (just the number, no currency). Return ONLY these two numbers separated by a comma, like: 2382,4500.00 — If either value is not found return NULL for that value, e.g.: NULL,4500.00 or 2382,NULL. No other text.' }
-                        ]
-                    }]
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64 })
             });
 
             dbg('HTTP ' + res.status + ' ' + res.statusText);
@@ -991,10 +973,10 @@
             dbg('JSON: ' + JSON.stringify(data).substring(0, 300));
 
             if (data.error) {
-                throw new Error(data.error.message);
+                throw new Error(data.error);
             }
 
-            const text = data.content[0].text.trim();
+            const text = data.text.trim();
             dbg('text: [' + text + ']');
             status.classList.remove('visible');
 

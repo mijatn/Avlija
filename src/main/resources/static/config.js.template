@@ -1,6 +1,2 @@
 // Force HTTPS to match the page origin and avoid mixed content blocking
 const API_BASE = window.location.origin;
-
-// Anthropic API key - get key at https://console.anthropic.com
-// ⚠️ Visible in browser - only use on trusted internal network
-const ANTHROPIC_API_KEY = 'YOUR_ANTHROPIC_API_KEY_HERE';
