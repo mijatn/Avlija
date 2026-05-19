@@ -7,7 +7,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class BillRepository {
@@ -109,6 +111,24 @@ public class BillRepository {
         String sql = "SELECT DISTINCT waiterid FROM avlija.dbo.bill WHERE ddate = ? ORDER BY waiterid";
         log.debug("Resolving waiters with bills for date={}", targetDate);
         return jdbc.queryForList(sql, Integer.class, targetDate);
+    }
+
+    public List<Map<String, Object>> getBillsByDateAndWaiter(String targetDate, int waiterId) {
+        String sql = "SELECT b.[number] AS num, b.total AS tot, i.[number] AS inv " +
+                "FROM avlija.dbo.bill b " +
+                "LEFT JOIN avlija.dbo.invoice_bill ib ON ib.billid = b.id " +
+                "LEFT JOIN avlija.dbo.invoice i ON i.id = ib.invoiceid " +
+                "WHERE b.ddate = ? AND b.waiterid = ? " +
+                "ORDER BY b.[number]";
+        log.debug("Resolving bills for date={} waiter={}", targetDate, waiterId);
+        return jdbc.query(sql, (rs, rowNum) -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("number", rs.getInt("num"));
+            m.put("total", rs.getBigDecimal("tot"));
+            int inv = rs.getInt("inv");
+            m.put("invoice_number", rs.wasNull() ? null : inv);
+            return m;
+        }, targetDate, waiterId);
     }
 
     public List<Integer> getBillIdsByNumbers(String targetDate, int waiterId, List<Integer> billNumbers) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BillService {
@@ -73,6 +74,13 @@ public class BillService {
     public List<Integer> getBillIdsByNumbers(String targetDate, int waiterId, List<Integer> billNumbers) {
         log.debug("Resolving bill IDs for date={} waiter={} numbers={}", targetDate, waiterId, billNumbers);
         return billRepository.getBillIdsByNumbers(targetDate, waiterId, billNumbers);
+    }
+
+    public List<Map<String, Object>> getBillsByDateAndWaiter(String targetDate, int waiterId) {
+        log.debug("Resolving bills for date={} waiter={}", targetDate, waiterId);
+        List<Map<String, Object>> bills = billRepository.getBillsByDateAndWaiter(targetDate, waiterId);
+        log.debug("Found {} bill(s) for {} waiter={}", bills.size(), targetDate, waiterId);
+        return bills;
     }
 
     public List<Integer> getWaitersByDate(String targetDate) {

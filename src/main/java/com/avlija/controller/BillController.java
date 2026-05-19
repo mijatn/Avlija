@@ -93,6 +93,16 @@ public class BillController {
         return result;
     }
 
+    @GetMapping("/by-waiter")
+    public Map<String, Object> getBillsByDateAndWaiter(
+            @RequestParam("target_date") String targetDate,
+            @RequestParam("waiter_id") int waiterId) {
+        log.debug("GET /bills/by-waiter date={} waiter={}", targetDate, waiterId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("bills", billService.getBillsByDateAndWaiter(targetDate, waiterId));
+        return result;
+    }
+
     @GetMapping("/total")
     public Map<String, Object> getBillTotal(
             @RequestParam("target_date") String targetDate,
