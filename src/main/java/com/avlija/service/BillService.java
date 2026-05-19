@@ -74,4 +74,11 @@ public class BillService {
         log.debug("Resolving bill IDs for date={} waiter={} numbers={}", targetDate, waiterId, billNumbers);
         return billRepository.getBillIdsByNumbers(targetDate, waiterId, billNumbers);
     }
+
+    public List<Integer> getWaitersByDate(String targetDate) {
+        log.debug("Resolving waiters with bills for date={}", targetDate);
+        List<Integer> waiters = billRepository.getWaitersByDate(targetDate);
+        log.debug("Found {} waiter(s) with bills on {}", waiters.size(), targetDate);
+        return waiters;
+    }
 }

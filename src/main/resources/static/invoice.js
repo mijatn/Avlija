@@ -9,7 +9,7 @@ function openInvoice(data, date, bills, invoiceNumber) {
 
     const rows = data.map(row => `
         <tr>
-            <td>${row.articlename}</td>
+            <td class="name">${row.articlename}</td>
             <td class="right">${formatNum(row.total_qty)}</td>
             <td class="right">${formatNum(row.total_price)}</td>
             <td class="right">${formatNum(row.total)}</td>
@@ -24,8 +24,8 @@ function openInvoice(data, date, bills, invoiceNumber) {
     <title>Račun - Avlija</title>
     <style>
         @page {
-            size: A4 portrait;
-            margin: 20mm 8mm 20mm 8mm;
+            size: 80mm auto;
+            margin: 4mm 0;
         }
 
         * {
@@ -36,65 +36,74 @@ function openInvoice(data, date, bills, invoiceNumber) {
 
         body {
             font-family: 'Courier New', monospace;
-            font-size: 12pt;
+            font-size: 9pt;
             color: #000;
             background: #fff;
-            width: 170mm;
+            width: 80mm;
             margin: 0 auto;
+            padding: 0 3mm;
         }
 
         .restaurant-name {
             text-align: center;
-            font-size: 22pt;
+            font-size: 16pt;
             font-weight: bold;
-            letter-spacing: 4px;
-            margin-top: 3em;
-            margin-bottom: 4px;
+            letter-spacing: 3px;
+            margin: 4px 0 2px 0;
         }
 
         .restaurant-sub {
             text-align: center;
-            font-size: 11pt;
-            margin-bottom: 2px;
+            font-size: 8pt;
+            line-height: 1.4;
         }
 
         .divider {
             border: none;
             border-top: 1px dashed #000;
-            margin: 10px 0;
+            margin: 5px 0;
+        }
+
+        .divider-solid {
+            border: none;
+            border-top: 1px solid #000;
+            margin: 5px 0;
         }
 
         .meta {
             display: flex;
             justify-content: space-between;
-            font-size: 11pt;
-            margin-bottom: 4px;
+            font-size: 8pt;
+            line-height: 1.6;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
+            margin-top: 2px;
             table-layout: fixed;
         }
 
         th {
             text-align: left;
+            padding: 2px 0;
+            font-size: 8pt;
             border-bottom: 1px solid #000;
-            padding: 4px 0;
-            font-size: 11pt;
         }
 
         td {
-            padding: 4px 2px;
-            font-size: 11pt;
-            word-wrap: break-word;
+            padding: 2px 1px;
+            font-size: 8pt;
+            vertical-align: top;
         }
 
-        td:first-child, th:first-child { width: 47%; }
-        td:nth-child(2), th:nth-child(2) { width: 12%; text-align: right; }
-        td:nth-child(3), th:nth-child(3) { width: 12%; text-align: right; }
-        td:nth-child(4), th:nth-child(4) { width: 29%; text-align: right; }
+        td.name { word-wrap: break-word; }
+
+        /* Artikal | Kol | Cena | Ukupno */
+        th:first-child,  td:first-child  { width: 40%; }
+        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
+        th:nth-child(3), td:nth-child(3) { width: 20%; text-align: right; }
+        th:nth-child(4), td:nth-child(4) { width: 27%; text-align: right; }
 
         th.right, td.right { text-align: right; }
 
@@ -102,20 +111,20 @@ function openInvoice(data, date, bills, invoiceNumber) {
             display: flex;
             justify-content: space-between;
             font-weight: bold;
-            font-size: 13pt;
-            margin-top: 6px;
+            font-size: 11pt;
+            margin-top: 4px;
         }
 
         .footer {
             text-align: center;
-            margin-top: 20px;
-            font-size: 11pt;
+            margin-top: 10px;
+            font-size: 8pt;
             line-height: 2;
         }
 
         @media print {
             html, body {
-                width: 170mm;
+                width: 80mm;
                 margin: 0 auto;
             }
         }
@@ -134,7 +143,7 @@ function openInvoice(data, date, bills, invoiceNumber) {
         <thead>
             <tr>
                 <th>Artikal</th>
-                <th class="right">Kol.</th>
+                <th class="right">Kol</th>
                 <th class="right">Cena</th>
                 <th class="right">Ukupno</th>
             </tr>
@@ -143,11 +152,12 @@ function openInvoice(data, date, bills, invoiceNumber) {
             ${rows}
         </tbody>
     </table>
-    <hr class="divider">
+    <hr class="divider-solid">
     <div class="total-row">
         <span>UKUPNO:</span>
-        <span>${formatNum(totalPrice)}</span>
+        <span>${formatNum(totalPrice)} RSD</span>
     </div>
+    <hr class="divider">
     <div class="footer">
         Hvala na poseti!<br>
         ★ Dodjite nam ponovo ★

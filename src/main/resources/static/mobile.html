@@ -929,7 +929,7 @@
         const box = document.getElementById('camDebugBox');
         box.innerHTML = '';
         box.style.display = 'block';
-        dbg('=== TAP DETECTED ===');
+        // dbg('=== TAP DETECTED ===');
 
         captureBtn.disabled = true;
         success.classList.remove('visible');
@@ -937,7 +937,7 @@
         status.textContent = '📷 Snimam...';
         status.classList.add('visible');
 
-        dbg('video ' + video.videoWidth + 'x' + video.videoHeight);
+        // dbg('video ' + video.videoWidth + 'x' + video.videoHeight);
 
         if (!video.videoWidth || !video.videoHeight) {
             dbg('ERROR: video not ready');
@@ -954,30 +954,30 @@
         canvas.height = Math.round(video.videoHeight * scale);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
-        dbg('canvas ' + canvas.width + 'x' + canvas.height + ' base64 ' + base64.length + ' chars');
+        // dbg('canvas ' + canvas.width + 'x' + canvas.height + ' base64 ' + base64.length + ' chars');
 
         status.textContent = '🌐 Šaljem Claude...';
 
         try {
-            dbg('fetch START /ocr/scan');
+            // dbg('fetch START /ocr/scan');
             const res = await fetch(`${API_BASE}/ocr/scan`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64 })
             });
 
-            dbg('HTTP ' + res.status + ' ' + res.statusText);
+            // dbg('HTTP ' + res.status + ' ' + res.statusText);
             status.textContent = '🔍 Obrađujem...';
 
             const data = await res.json();
-            dbg('JSON: ' + JSON.stringify(data).substring(0, 300));
+            // dbg('JSON: ' + JSON.stringify(data).substring(0, 300));
 
             if (data.error) {
                 throw new Error(data.error);
             }
 
             const text = data.text.trim();
-            dbg('text: [' + text + ']');
+            // dbg('text: [' + text + ']');
             status.classList.remove('visible');
 
             // Parse pipe-separated response: billNum|total|date|waiterId
@@ -1008,7 +1008,7 @@
             })();
             const scanTotal = /^[\d.]+$/.test(totalClean) ? parseFloat(totalClean) : null;
 
-            dbg('bill=' + billNum + ' total=' + scanTotal + ' date=' + scanDate + ' waiter=' + waiterNum);
+            // dbg('bill=' + billNum + ' total=' + scanTotal + ' date=' + scanDate + ' waiter=' + waiterNum);
 
             // Validate all required fields scanned
             const missing = [];
@@ -1043,7 +1043,7 @@
             const totalRes  = await fetch(`${API_BASE}/bills/total?target_date=${date}&waiter_id=${waiterId}&bill_number=${billNum}`);
             const totalData = await totalRes.json();
             const dbTotal   = totalData.total !== null ? parseFloat(totalData.total) : null;
-            dbg('dbTotal=' + dbTotal);
+            // dbg('dbTotal=' + dbTotal);
 
             if (dbTotal === null) {
                 // Bill not in DB — let mAddBill handle the error message

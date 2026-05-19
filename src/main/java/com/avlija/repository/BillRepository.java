@@ -105,6 +105,12 @@ public class BillRepository {
         });
     }
 
+    public List<Integer> getWaitersByDate(String targetDate) {
+        String sql = "SELECT DISTINCT waiterid FROM avlija.dbo.bill WHERE ddate = ? ORDER BY waiterid";
+        log.debug("Resolving waiters with bills for date={}", targetDate);
+        return jdbc.queryForList(sql, Integer.class, targetDate);
+    }
+
     public List<Integer> getBillIdsByNumbers(String targetDate, int waiterId, List<Integer> billNumbers) {
         String placeholders = String.join(",", Collections.nCopies(billNumbers.size(), "?"));
         String sql = "SELECT id FROM avlija.dbo.bill WHERE ddate = ? AND waiterid = ? AND [number] IN (" + placeholders + ")";
