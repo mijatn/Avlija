@@ -1092,14 +1092,19 @@
 
 
     async function loadMaxDate() {
+        // Add delay to ensure page is ready
+        await new Promise(r => setTimeout(r, 500));
+
         try {
             const res = await fetch(`${API_BASE}/bills/max-date`);
             const data = await res.json();
-            if (data.max_date) {
+            console.log('Max date response:', data); // Debug
+            if (data && data.max_date) {
                 const d = data.max_date.split('T')[0];
                 document.getElementById('mTargetDate').value = d;
             }
         } catch (err) {
+            console.error('loadMaxDate error:', err);
             document.getElementById('mTargetDate').value = new Date().toISOString().split('T')[0];
         }
         await mNovo();
