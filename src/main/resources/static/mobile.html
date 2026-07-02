@@ -1101,7 +1101,8 @@
             const data = await res.json();
             console.log('Max date response:', data); // Debug
             if (data && data.max_date) {
-                const d = data.max_date.split('T')[0];
+                const d = data.max_date.includes('T') ? data.max_date.split('T')[0] : data.max_date;
+                console.log('Setting mTargetDate to:', d);
                 document.getElementById('mTargetDate').value = d;
             }
         } catch (err) {
