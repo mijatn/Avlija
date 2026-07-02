@@ -1,0 +1,12 @@
+avlijadb_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.eu-zurich-1.oraclecloud.com))(connect_data=(service_name=gb1c9947a62b36f_avlijadb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+avlijadb_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.eu-zurich-1.oraclecloud.com))(connect_data=(service_name=gb1c9947a62b36f_avlijadb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+avlijadb_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.eu-zurich-1.oraclecloud.com))(connect_data=(service_name=gb1c9947a62b36f_avlijadb_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+avlijadb_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.eu-zurich-1.oraclecloud.com))(connect_data=(service_name=gb1c9947a62b36f_avlijadb_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+avlijadb_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.eu-zurich-1.oraclecloud.com))(connect_data=(service_name=gb1c9947a62b36f_avlijadb_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
