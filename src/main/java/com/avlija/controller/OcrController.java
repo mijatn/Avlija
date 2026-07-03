@@ -30,7 +30,7 @@ public class OcrController {
     private static final Logger log = LoggerFactory.getLogger(OcrController.class);
 
     private static final String ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-    private static final String MODEL = "claude-haiku-4-5-20251001";
+    private static final String MODEL = "claude-sonnet-4-6";
     private static final String PROMPT =
         "This is a restaurant receipt. Extract: " +
         "1) bill number printed after \"RACUN br.\" or \"RACUN BR\" or \"Racun br\", " +
