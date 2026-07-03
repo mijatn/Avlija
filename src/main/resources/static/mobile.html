@@ -3,64 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avlija - Grupni Račun</title>
+    <title>Avlija - Skener</title>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: sans-serif; padding: 12px; background: #f9f9f9; margin: 0; }
-        /* ── MOBILE UI ──────────────────────────────────────────── */
+
         .m-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
         }
-        .m-header h2 { font-size: 20px; margin: 0; color: #1565c0; }
-
-        .m-date-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .m-date-row label { font-size: 13px; font-weight: bold; color: #444; white-space: nowrap; }
-        .m-date-row input {
-            flex: 1;
-            padding: 9px 10px;
-            font-size: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .m-input-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        .m-input-row input {
-            flex: 1;
-            padding: 12px 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-        .m-input-row .btn-add {
-            padding: 12px 18px;
-            font-size: 16px;
-            background: #4a90d9;
+        .m-header h2 { font-size: 20px; margin: 0; color: #1565c0; flex: 1; }
+        .m-header .btn-desktop {
+            padding: 8px 14px;
+            font-size: 13px;
+            background: #666;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
+            white-space: nowrap;
         }
+        .m-header .btn-desktop:hover { background: #444; }
+
+        .m-scanned-info {
+            display: none;
+            background: #f0f4ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 14px;
+            font-size: 15px;
+        }
+        .m-scanned-info strong { color: #1565c0; }
 
         .m-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            min-height: 44px;
+            min-height: 50px;
             background: white;
-            border: 1px solid #ccc;
+            border: 2px solid #1565c0;
             border-radius: 10px;
-            padding: 8px 10px;
+            padding: 10px;
             margin-bottom: 16px;
             align-items: center;
         }
@@ -73,7 +58,7 @@
             color: #2a5db0;
             font-size: 15px;
             font-weight: bold;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 20px;
         }
         .m-tag .remove {
@@ -81,9 +66,10 @@
             cursor: pointer;
             color: #888;
             line-height: 1;
-            padding: 0 2px;
+            padding: 0 4px;
         }
         .m-tag .remove:hover { color: #c00; }
+        .m-tags-empty { color: #aaa; font-size: 13px; }
 
         .m-total-box {
             background: white;
@@ -92,11 +78,26 @@
             padding: 18px 20px;
             text-align: center;
             margin-bottom: 20px;
+            display: none;
         }
         .m-total-label { font-size: 13px; color: #666; margin-bottom: 4px; }
-        .m-total-value { font-size: 32px; font-weight: bold; color: #1565c0; }
+        .m-total-value { font-size: 36px; font-weight: bold; color: #1565c0; }
 
         .m-actions { display: flex; flex-direction: column; gap: 10px; }
+        .m-btn-scan {
+            padding: 16px;
+            font-size: 18px;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        .m-btn-scan:hover { background: #00695c; }
+        .m-btn-scan:disabled { background: #aaa; cursor: not-allowed; }
+
         .m-btn-save {
             padding: 14px;
             font-size: 16px;
@@ -107,8 +108,11 @@
             cursor: pointer;
             font-weight: bold;
             width: 100%;
+            display: none;
         }
-        .m-btn-save:disabled { background: #2e7d32; }
+        .m-btn-save:hover { background: #4a148c; }
+        .m-btn-save:disabled { background: #2e7d32; cursor: not-allowed; }
+
         .m-btn-novo {
             padding: 14px;
             font-size: 16px;
@@ -120,371 +124,12 @@
             font-weight: bold;
             width: 100%;
         }
-        .m-error { color: red; font-size: 13px; margin-bottom: 8px; display: none; }
-        .m-success { color: #2e7d32; font-size: 13px; margin-bottom: 8px; display: none; }
+        .m-btn-novo:hover { background: #0d47a1; }
 
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 24px;
-            border-bottom: 2px solid #1565c0;
-        }
+        .m-error { color: #c62828; font-size: 13px; margin-bottom: 10px; display: none; font-weight: bold; }
+        .m-success { color: #2e7d32; font-size: 13px; margin-bottom: 10px; display: none; font-weight: bold; }
 
-        .tab-btn {
-            padding: 10px 24px;
-            font-size: 14px;
-            font-weight: bold;
-            background: #e8f0fe;
-            color: #1565c0;
-            border: 1px solid #c5d8f8;
-            border-bottom: none;
-            border-radius: 6px 6px 0 0;
-            cursor: pointer;
-            margin-right: 4px;
-        }
-        .tab-btn.active { background: #1565c0; color: white; }
-        .tab-btn:hover:not(.active) { background: #d0e3ff; }
-
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .page-header h2 { margin: 0; font-size: 22px; }
-
-        .btn-novo {
-            padding: 7px 16px;
-            font-size: 14px;
-            background: #1565c0;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-novo:hover { background: #0d47a1; }
-
-        .row-top {
-            display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .form-group label { font-size: 13px; font-weight: bold; color: #444; }
-        .form-group input {
-            padding: 7px 8px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background: white;
-        }
-
-        #targetDate { width: 150px; }
-
-        .row-bottom {
-            display: flex;
-            align-items: flex-start;
-            gap: 24px;
-            flex-wrap: wrap;
-            margin-bottom: 14px;
-        }
-
-        .bill-input-group { display: flex; flex-direction: column; gap: 4px; }
-        .bill-input-group label { font-size: 13px; font-weight: bold; color: #444; }
-        .bill-input-row { display: flex; gap: 6px; }
-        .bill-input-row input {
-            padding: 7px 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            width: 130px;
-        }
-
-        .btn-add {
-            padding: 7px 14px;
-            font-size: 14px;
-            background: #4a90d9;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-add:hover { background: #357abd; }
-
-        .bill-tags-panel { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px; }
-        .bill-tags-panel label { font-size: 13px; font-weight: bold; color: #444; }
-
-        .bill-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            min-height: 38px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 6px 10px;
-            align-items: center;
-        }
-
-        .bill-tag {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: #e8f0fe;
-            border: 1px solid #a8c4f0;
-            color: #2a5db0;
-            font-size: 13px;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 20px;
-        }
-        .bill-tag .remove { cursor: pointer; color: #888; font-size: 15px; line-height: 1; }
-        .bill-tag .remove:hover { color: #c00; }
-        .bill-tags-empty { color: #aaa; font-size: 12px; }
-
-        .actions { margin-top: 4px; display: flex; gap: 10px; }
-
-        .btn-primary {
-            padding: 9px 18px;
-            font-size: 14px;
-            background: #2e7d32;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-primary:hover { background: #1b5e20; }
-
-        .btn-save {
-            display: none;
-            padding: 9px 18px;
-            font-size: 14px;
-            background: #6a1b9a;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-save:hover { background: #4a148c; }
-
-        .btn-print {
-            display: none;
-            padding: 9px 18px;
-            font-size: 14px;
-            background: #37474f;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-print:hover { background: #263238; }
-
-        .btn-search {
-            padding: 7px 18px;
-            font-size: 14px;
-            background: #2e7d32;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            align-self: flex-end;
-        }
-        .btn-search:hover { background: #1b5e20; }
-
-        .btn-delete {
-            padding: 9px 18px;
-            font-size: 14px;
-            background: #c62828;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-delete:hover { background: #b71c1c; }
-
-        .error-msg { color: red; font-weight: bold; margin-top: 12px; display: none; }
-        .success-msg { color: #2e7d32; font-size: 13px; margin-top: 8px; display: none; }
-
-        table { border-collapse: collapse; width: 100%; margin-top: 12px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-        th, td { border: 1px solid #e0e0e0; padding: 9px 12px; text-align: left; }
-        th { background-color: #f0f0f0; font-size: 13px; }
-        td { font-size: 13px; }
-        tr:hover td { background: #fafafa; }
-        tr.selected td { background: #e3f2fd !important; }
-        tr.clickable { cursor: pointer; }
-
-        .pregled-filters {
-            display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            margin: 24px 0 8px 0;
-        }
-
-        .pregled-actions {
-            display: none;
-            gap: 10px;
-            margin-top: 16px;
-        }
-        .pregled-actions.visible { display: flex; }
-
-        /* edit bills panel */
-        .edit-bills-panel {
-            display: none;
-            margin-top: 16px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 14px 16px;
-        }
-        .edit-bills-panel.visible { display: block; }
-        .edit-bills-panel label { font-size: 13px; font-weight: bold; color: #444; display: block; margin-bottom: 6px; }
-
-        /* MODAL */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.25);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-overlay.visible {
-            display: flex;
-        }
-        .modal-box {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 24px 28px;
-            max-width: 380px;
-            width: 90%;
-            font-family: sans-serif;
-        }
-        .modal-icon {
-            font-size: 22px;
-            margin-bottom: 10px;
-        }
-        .modal-message {
-            font-size: 14px;
-            color: #333;
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .modal-btn {
-            padding: 8px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #1565c0;
-            color: white;
-            font-weight: bold;
-        }
-        .modal-btn:hover { background: #0d47a1; }
-        .modal-btn-cancel {
-            padding: 8px 20px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            cursor: pointer;
-            background: white;
-            color: #555;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        .modal-btn-cancel:hover { background: #f5f5f5; }
-        .modal-btn-danger {
-            padding: 8px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #c62828;
-            color: white;
-            font-weight: bold;
-        }
-        .modal-btn-danger:hover { background: #b71c1c; }
-
-        /* MODAL */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.25);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-overlay.visible { display: flex; }
-        .modal-box {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 24px 28px;
-            max-width: 380px;
-            width: 90%;
-            font-family: sans-serif;
-        }
-        .modal-icon { font-size: 22px; margin-bottom: 10px; }
-        .modal-message { font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 20px; }
-        .modal-actions { display: flex; justify-content: flex-end; }
-        .modal-btn {
-            padding: 8px 20px; font-size: 14px; border: none;
-            border-radius: 6px; cursor: pointer; background: #1565c0;
-            color: white; font-weight: bold;
-        }
-        .modal-btn:hover { background: #0d47a1; }
-        .modal-btn-cancel {
-            padding: 8px 20px; font-size: 14px; border: 1px solid #ccc;
-            border-radius: 6px; cursor: pointer; background: white;
-            color: #555; font-weight: bold; margin-right: 8px;
-        }
-        .modal-btn-cancel:hover { background: #f5f5f5; }
-        .modal-btn-danger {
-            padding: 8px 20px; font-size: 14px; border: none;
-            border-radius: 6px; cursor: pointer; background: #c62828;
-            color: white; font-weight: bold;
-        }
-        .modal-btn-danger:hover { background: #b71c1c; }
-
-        /* ── SCAN ───────────────────────────────────────────────── */
-        .btn-scan {
-            padding: 12px 14px;
-            font-size: 18px;
-            background: #00796b;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .btn-scan:hover { background: #00695c; }
-        .btn-scan:disabled { background: #aaa; }
-
-        /* Full-screen camera overlay */
+        /* CAMERA OVERLAY */
         .camera-overlay {
             display: none;
             position: fixed;
@@ -520,6 +165,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .btn-capture:active { background: #ddd; }
+        .btn-capture:disabled { background: #666; cursor: not-allowed; }
 
         .btn-cam-close {
             padding: 12px 18px;
@@ -531,8 +177,8 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .btn-cam-close:hover { background: #b71c1c; }
 
-        /* Processing spinner inside camera overlay */
         .cam-status-bar {
             display: none;
             position: absolute;
@@ -548,7 +194,6 @@
         }
         .cam-status-bar.visible { display: block; }
 
-        /* Sledeci racun banner */
         .cam-success-bar {
             display: none;
             position: absolute;
@@ -565,37 +210,55 @@
         }
         .cam-success-bar.visible { display: block; }
         @keyframes slidein { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 24px 28px;
+            max-width: 380px;
+            width: 90%;
+        }
+        .modal-icon { font-size: 22px; margin-bottom: 10px; }
+        .modal-message { font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 20px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-btn {
+            padding: 8px 20px; font-size: 14px; border: none;
+            border-radius: 6px; cursor: pointer; background: #1565c0;
+            color: white; font-weight: bold;
+        }
+        .modal-btn:hover { background: #0d47a1; }
+        .modal-btn-cancel {
+            padding: 8px 20px; font-size: 14px; border: 1px solid #ccc;
+            border-radius: 6px; cursor: pointer; background: white;
+            color: #555; font-weight: bold;
+        }
+        .modal-btn-cancel:hover { background: #f5f5f5; }
     </style>
 </head>
 <body>
-
 
 <!-- CAMERA OVERLAY -->
 <div class="camera-overlay" id="cameraOverlay">
     <video id="cameraVideo" autoplay playsinline muted></video>
     <canvas id="cameraCanvas" style="display:none"></canvas>
-
     <div class="cam-success-bar" id="camSuccessBar" onclick="captureNext()"></div>
     <div class="cam-status-bar" id="camStatusBar">Čitam račun...</div>
-
-    <div id="camDebugBox" style="display:none;position:absolute;top:0;left:0;right:0;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:13px;padding:10px;word-break:break-all;max-height:50vh;overflow-y:auto;z-index:9999;"></div>
-
     <div class="camera-controls">
         <button class="btn-cam-close" onclick="closeCamera()">✕ Zatvori</button>
         <button class="btn-capture" id="captureBtn" onclick="captureFrame()">📷</button>
         <div style="width:70px"></div>
-    </div>
-</div>
-
-<!-- CONFIRM MODAL -->
-<div class="modal-overlay" id="confirmOverlay">
-    <div class="modal-box">
-        <div class="modal-icon">🗑</div>
-        <div class="modal-message" id="confirmMessage"></div>
-        <div class="modal-actions">
-            <button class="modal-btn-cancel" onclick="closeConfirm(false)">Odustani</button>
-            <button class="modal-btn-danger" onclick="closeConfirm(true)">Obriši</button>
-        </div>
     </div>
 </div>
 
@@ -610,150 +273,105 @@
     </div>
 </div>
 
-<div id="mobileUI">
-    <div class="m-header">
-        <h2>Grupni Račun: <span id="mInvoiceNumber">—</span></h2>
-    </div>
-
-    <!-- Hidden inputs still used by mAddBill logic -->
-    <input type="hidden" id="mTargetDate">
-    <input type="hidden" id="mWaiterId">
-
-    <div class="m-date-row" id="mScannedInfo" style="display:none;background:#f0f4ff;border-radius:8px;padding:10px;margin-bottom:8px;font-size:15px;">
-        <div>📅 <strong id="mScannedDate">—</strong> &nbsp;&nbsp; 👤 Konobar: <strong id="mScannedWaiter">—</strong></div>
-    </div>
-
-    <div class="m-input-row">
-        <input type="number" id="mBillInput" placeholder="broj računa"
-               onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();mAddBill();}">
-        <button class="btn-add" onclick="mAddBill()">+</button>
-        <button class="btn-scan" id="scanBtn" onclick="startScan()" title="Skeniraj račun">📷</button>
-    </div>
-
-    <div class="m-tags" id="mBillTags">
-        <span style="color:#aaa;font-size:13px;">Nema odabranih računa</span>
-    </div>
-
-    <div class="m-error" id="mError"></div>
-    <div class="m-success" id="mSuccess"></div>
-
-    <div class="m-total-box" id="mTotalBox" style="display:none;">
-        <div class="m-total-label">Ukupno</div>
-        <div class="m-total-value" id="mTotalValue">0.00</div>
-    </div>
-
-    <div class="m-actions">
-        <button class="m-btn-save" id="mSaveBtn" onclick="mSave()" style="display:none;">💾 Sačuvaj</button>
-        <button class="m-btn-novo" onclick="mNovo()">+ Novi račun</button>
-    </div>
+<div class="m-header">
+    <h2>📱 Skener računa</h2>
+    <button class="btn-desktop" onclick="goToDesktop()">💻 Desktop</button>
 </div>
+
+<div class="m-scanned-info" id="mScannedInfo">
+    <div>📅 <strong id="mScannedDate">—</strong> &nbsp;&nbsp; 👤 Konobar: <strong id="mScannedWaiter">—</strong></div>
+</div>
+
+<div class="m-error" id="mError"></div>
+<div class="m-success" id="mSuccess"></div>
+
+<div class="m-tags" id="mBillTags">
+    <span class="m-tags-empty">Nema skeniranih računa</span>
+</div>
+
+<div class="m-total-box" id="mTotalBox">
+    <div class="m-total-label">Ukupno</div>
+    <div class="m-total-value" id="mTotalValue">0.00</div>
+</div>
+
+<div class="m-actions">
+    <button class="m-btn-scan" id="scanBtn" onclick="startScan()">📷 Skeniraj račun</button>
+    <button class="m-btn-save" id="mSaveBtn" onclick="mSave()">💾 Sačuvaj grupni račun</button>
+    <button class="m-btn-novo" onclick="mNovo()">+ Novi račun</button>
 </div>
 
 <script src="config.js"></script>
 <script src="shared.js"></script>
 <script src="invoice.js"></script>
 <script>
-    document.getElementById('modalOverlay').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
+    // ── MOBILE SCANNER UI ──────────────────────────────────────────
 
-    // ── MOBILE UI ──────────────────────────────────────────────
-    let mBillNumbers = [];   // display only
-    let mBillEntries = [];   // [{id, waiterId, number}]
+    let mBillEntries = [];  // [{id, waiterId, number}]
     let mTotal = 0;
     let mSaved = false;
+    let mTargetDate = '';
+    let mWaiterId = '';
 
     function mShowError(msg) {
         const el = document.getElementById('mError');
         el.textContent = msg; el.style.display = 'block';
         document.getElementById('mSuccess').style.display = 'none';
     }
+
     function mClearMessages() {
         document.getElementById('mError').style.display = 'none';
         document.getElementById('mSuccess').style.display = 'none';
     }
 
-    function mOnDateChange() { }  // date now comes from scan
-
-    async function mNovo() {
-        mBillNumbers = []; mBillEntries = []; mTotal = 0; mSaved = false;
+    function mNovo() {
+        mBillEntries = []; mTotal = 0; mSaved = false;
+        mTargetDate = ''; mWaiterId = '';
         mRenderTags();
         document.getElementById('mTotalBox').style.display = 'none';
         document.getElementById('mScannedInfo').style.display = 'none';
-        document.getElementById('mTargetDate').value = '';
-        document.getElementById('mWaiterId').value = '';
         const sb = document.getElementById('mSaveBtn');
         sb.style.display = 'none'; sb.disabled = false;
-        sb.textContent = '💾 Sačuvaj'; sb.style.background = '#6a1b9a';
-        document.getElementById('mInvoiceNumber').textContent = '—';
+        sb.textContent = '💾 Sačuvaj grupni račun'; sb.style.background = '#6a1b9a';
         mClearMessages();
     }
 
-    async function mAddBill() {
-        const input = document.getElementById('mBillInput');
-        const val = input.value.trim();
-        if (!val || isNaN(val)) return;
-        const num = parseInt(val);
-        const date = document.getElementById('mTargetDate').value;
-        const waiterId = document.getElementById('mWaiterId').value.trim();
-        if (!waiterId) {
-            mShowError('Skenirajte račun da biste učitali datum i konobara.');
-            return { ok: false, msg: 'Skenirajte račun da biste učitali datum i konobara.' };
+    async function mAddBill(billNum, date, waiterId) {
+        if (mBillEntries.some(e => e.number === billNum)) {
+            return { ok: false, msg: `Račun ${billNum} je već dodan.` };
         }
-        if (mBillEntries.some(e => e.number === num)) {
-            const msg = `Račun ${num} je već dodan.`;
-            mShowError(msg);
-            input.value = ''; input.focus();
-            return { ok: false, msg };
-        }
+
         const params = new URLSearchParams();
         params.append('target_date', date);
         params.append('waiter_id', waiterId);
-        params.append('bill_numbers', num);
+        params.append('bill_numbers', billNum);
+
         try {
             const valRes = await fetch(`${API_BASE}/bills/validate?${params}`);
             const valData = await valRes.json();
             if (valData.missing.length > 0) {
-                mShowError(`Račun ${num} nije pronađen za ${fmtDate(date)} konobar ${waiterId}.`);
-                input.value = ''; input.focus();
-                return { ok: false, msg: `Račun ${num} nije pronađen za ${fmtDate(date)} konobar ${waiterId}.` };
-            } else {
-                const linkRes = await fetch(`${API_BASE}/bills/check-linked?target_date=${date}&waiter_id=${waiterId}&bill_number=${num}`);
-                const linkData = await linkRes.json();
-                if (linkData.invoice_number !== null) {
-                    const msg = `Račun ${num} je već u grupnom računu ${linkData.invoice_number} za datum ${fmtDate(date)}.`;
-                    mShowError(msg);
-                    input.value = ''; input.focus();
-                    return { ok: false, msg };
-                } else {
-                    const resolveRes = await fetch(`${API_BASE}/bills/resolve?target_date=${date}&waiter_id=${waiterId}&bill_number=${num}`);
-                    const resolveData = await resolveRes.json();
-                    mBillEntries.push({ id: resolveData.id, waiterId: parseInt(waiterId), number: num });
-                    mBillNumbers.push(num);
-                    mClearMessages();
-                    mRenderTags();
-                    await mRefreshTotal();
-                    // Update invoice number preview on first bill
-                    if (mBillEntries.length === 1) {
-                        try {
-                            const invRes = await fetch(`${API_BASE}/invoice/next-number?target_date=${date}`);
-                            const invData = await invRes.json();
-                            document.getElementById('mInvoiceNumber').textContent = `#${invData.number}`;
-                        } catch(e) {}
-                    }
-                    input.value = ''; input.focus();
-                    return { ok: true };
-                }
+                return { ok: false, msg: `Račun ${billNum} nije pronađen za ${fmtDate(date)} konobar ${waiterId}.` };
             }
+
+            const linkRes = await fetch(`${API_BASE}/bills/check-linked?target_date=${date}&waiter_id=${waiterId}&bill_number=${billNum}`);
+            const linkData = await linkRes.json();
+            if (linkData.invoice_number !== null) {
+                return { ok: false, msg: `Račun ${billNum} je već u grupnom računu ${linkData.invoice_number} za datum ${fmtDate(date)}.` };
+            }
+
+            const resolveRes = await fetch(`${API_BASE}/bills/resolve?target_date=${date}&waiter_id=${waiterId}&bill_number=${billNum}`);
+            const resolveData = await resolveRes.json();
+            mBillEntries.push({ id: resolveData.id, waiterId: parseInt(waiterId), number: billNum });
+            mClearMessages();
+            mRenderTags();
+            await mRefreshTotal();
+
+            return { ok: true };
         } catch(e) {
-            mShowError('Greška pri konekciji na API.');
-            input.value = ''; input.focus();
             return { ok: false, msg: 'Greška pri konekciji na API.' };
         }
     }
 
     async function mRemoveBill(num) {
-        mBillNumbers = mBillNumbers.filter(n => n !== num);
         mBillEntries = mBillEntries.filter(e => e.number !== num);
         mRenderTags();
         await mRefreshTotal();
@@ -763,7 +381,7 @@
         const c = document.getElementById('mBillTags');
         c.innerHTML = '';
         if (mBillEntries.length === 0) {
-            c.innerHTML = '<span style="color:#aaa;font-size:13px;">Nema odabranih računa</span>';
+            c.innerHTML = '<span class="m-tags-empty">Nema skeniranih računa</span>';
             return;
         }
         mBillEntries.forEach(e => {
@@ -778,6 +396,7 @@
         document.getElementById('mTotalBox').style.display = 'none';
         document.getElementById('mSaveBtn').style.display = 'none';
         if (mBillEntries.length === 0) return;
+
         const params = new URLSearchParams();
         mBillEntries.forEach(e => params.append('bill_ids', e.id));
         try {
@@ -792,47 +411,55 @@
 
     async function mSave() {
         if (mSaved) return;
-        const date = document.getElementById('mTargetDate').value;
+        if (!mTargetDate || !mWaiterId) {
+            mShowError('Skenirajte račun prvo.');
+            return;
+        }
         const btn = document.getElementById('mSaveBtn');
         btn.disabled = true; btn.textContent = '...';
         try {
             const params = new URLSearchParams();
-            params.append('target_date', date);
+            params.append('target_date', mTargetDate);
             params.append('total', mTotal);
             mBillEntries.forEach(e => params.append('bill_ids', e.id));
             const res = await fetch(`${API_BASE}/invoice/save-by-ids?${params}`, { method: 'POST' });
             const data = await res.json();
-            document.getElementById('mInvoiceNumber').textContent = `#${data.number}`;
             btn.textContent = '✔ Sačuvano'; btn.style.background = '#2e7d32';
             mSaved = true;
             const s = document.getElementById('mSuccess');
-            s.textContent = `✔ Grupni račun #${data.number} sačuvan.`;
+            s.textContent = `✔ Grupni račun #${data.number} sačuvan!`;
             s.style.display = 'block';
-        } catch(e) { btn.disabled = false; btn.textContent = '💾 Sačuvaj'; mShowError('Greška pri snimanju.'); }
+        } catch(e) {
+            btn.disabled = false; btn.textContent = '💾 Sačuvaj grupni račun';
+            mShowError('Greška pri snimanju.');
+        }
     }
 
-    // Sync date inputs between desktop and mobile
-    document.getElementById('mTargetDate').addEventListener('change', function() {
-        // sync to desktop if loaded together (not needed in standalone mobile)
-        if (document.getElementById('targetDate')) document.getElementById('targetDate').value = this.value;
-    });
+    function showModal(msg, icon = '⚠️') {
+        document.getElementById('modalIcon').textContent = icon;
+        document.getElementById('modalMessage').textContent = msg;
+        document.getElementById('modalOverlay').classList.add('visible');
+    }
 
+    function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('visible');
+    }
 
+    function goToDesktop() {
+        window.location.href = window.location.origin + '/desktop.html';
+    }
 
-    // ── SCAN / OCR ─────────────────────────────────────────────
+    // ── CAMERA SCANNING ────────────────────────────────────────────
 
-    let cameraStream  = null;
-    let scanAttempt   = 0;  // attempts for current bill, reset on success or close
+    let cameraStream = null;
+    let scanAttempt = 0;
 
     async function startScan() {
-        const overlay    = document.getElementById('cameraOverlay');
-        const video      = document.getElementById('cameraVideo');
-        const success    = document.getElementById('camSuccessBar');
-        const status     = document.getElementById('camStatusBar');
+        const overlay = document.getElementById('cameraOverlay');
+        const video = document.getElementById('cameraVideo');
+        const status = document.getElementById('camStatusBar');
         const captureBtn = document.getElementById('captureBtn');
 
-        success.classList.remove('visible');
-        status.style.background = 'rgba(0,0,0,0.7)';
         status.textContent = 'Pokrećem kameru...';
         status.classList.add('visible');
         captureBtn.disabled = true;
@@ -846,7 +473,6 @@
             video.srcObject = cameraStream;
             video.play();
 
-            // Poll until video has real dimensions — works on all mobile browsers
             await new Promise((resolve) => {
                 const check = setInterval(() => {
                     if (video.videoWidth > 0 && video.videoHeight > 0) {
@@ -854,7 +480,6 @@
                         resolve();
                     }
                 }, 100);
-                // Absolute timeout fallback after 8 seconds
                 setTimeout(() => { clearInterval(check); resolve(); }, 8000);
             });
 
@@ -894,7 +519,7 @@
     }
 
     function handleAddResult(result, billNum) {
-        const success    = document.getElementById('camSuccessBar');
+        const success = document.getElementById('camSuccessBar');
         const captureBtn = document.getElementById('captureBtn');
         if (result && result.ok) {
             success.style.background = '#2e7d32';
@@ -907,113 +532,62 @@
         }
     }
 
-    function dbg(msg) {
-        const box = document.getElementById('camDebugBox');
-        box.style.display = 'block';
-        box.style.display = 'block';
-        const line = document.createElement('div');
-        line.style.borderBottom = '1px solid #333';
-        line.style.padding = '2px 0';
-        line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
-        box.appendChild(line);
-        box.scrollTop = box.scrollHeight;
-    }
-
     async function captureFrame() {
-        const video      = document.getElementById('cameraVideo');
-        const canvas     = document.getElementById('cameraCanvas');
-        const status     = document.getElementById('camStatusBar');
-        const success    = document.getElementById('camSuccessBar');
+        const video = document.getElementById('cameraVideo');
+        const canvas = document.getElementById('cameraCanvas');
+        const status = document.getElementById('camStatusBar');
+        const success = document.getElementById('camSuccessBar');
         const captureBtn = document.getElementById('captureBtn');
-
-        // Clear debug box for new scan
-        const box = document.getElementById('camDebugBox');
-        box.innerHTML = '';
-        box.style.display = 'block';
-        // dbg('=== TAP DETECTED ===');
 
         captureBtn.disabled = true;
         success.classList.remove('visible');
-        status.style.background = 'rgba(0,0,0,0.7)';
         status.textContent = '📷 Snimam...';
         status.classList.add('visible');
 
-        // dbg('video ' + video.videoWidth + 'x' + video.videoHeight);
-
         if (!video.videoWidth || !video.videoHeight) {
-            dbg('ERROR: video not ready');
             status.textContent = '✕ Kamera nije spremna';
             status.style.background = 'rgba(180,0,0,0.8)';
             captureBtn.disabled = false;
             return;
         }
 
-        // Resize to 800px wide
         const MAX_W = 800;
         const scale = Math.min(1, MAX_W / video.videoWidth);
-        canvas.width  = Math.round(video.videoWidth  * scale);
+        canvas.width = Math.round(video.videoWidth * scale);
         canvas.height = Math.round(video.videoHeight * scale);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
-        // dbg('canvas ' + canvas.width + 'x' + canvas.height + ' base64 ' + base64.length + ' chars');
 
         status.textContent = '🌐 Šaljem Claude...';
 
         try {
-            // dbg('fetch START /ocr/scan');
             const res = await fetch(`${API_BASE}/ocr/scan`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64 })
             });
 
-            // dbg('HTTP ' + res.status + ' ' + res.statusText);
             status.textContent = '🔍 Obrađujem...';
-
             const data = await res.json();
-            // dbg('JSON: ' + JSON.stringify(data).substring(0, 300));
 
-            if (data.error) {
-                throw new Error(data.error);
-            }
+            if (data.error) throw new Error(data.error);
 
             const text = data.text.trim();
-            // dbg('text: [' + text + ']');
             status.classList.remove('visible');
 
-            // Parse pipe-separated response: billNum|total|date|waiterId
-            const parts    = text.split('|').map(p => p.trim());
-            const billStr   = parts[0] || 'NULL';
-            const totalStr  = parts[1] || 'NULL';
-            const dateStr   = parts[2] || 'NULL';  // DD.MM.YYYY
-            const waiterStr = parts[3] || 'NULL';
+            // Parse: billNum|total|date|waiterId
+            const parts = text.split('|').map(p => p.trim());
+            const billNum = /^\d+$/.test(parts[0]) ? parseInt(parts[0]) : null;
+            const waiterNum = /^\d+$/.test(parts[3]) ? parseInt(parts[3]) : null;
 
-            const billNum  = /^\d+$/.test(billStr) ? parseInt(billStr) : null;
-            const waiterNum = /^\d+$/.test(waiterStr) ? parseInt(waiterStr) : null;
-
-            // Parse date DD.MM.YYYY → YYYY-MM-DD
             let scanDate = null;
-            if (dateStr !== 'NULL' && /^\d{2}\.\d{2}\.\d{4}$/.test(dateStr)) {
-                const [dd, mm, yyyy] = dateStr.split('.');
+            if (parts[2] && /^\d{2}\.\d{2}\.\d{4}$/.test(parts[2])) {
+                const [dd, mm, yyyy] = parts[2].split('.');
                 scanDate = `${yyyy}-${mm}-${dd}`;
             }
 
-            // Parse total — handle both US (10,800.00) and European (10.800,00) formats
-            const totalClean = (() => {
-                const lastComma = totalStr.lastIndexOf(',');
-                const lastDot   = totalStr.lastIndexOf('.');
-                if (lastComma > lastDot && /,\d{2}$/.test(totalStr)) {
-                    return totalStr.substring(0, lastComma).replace(/[.,]/g, '') + '.' + totalStr.substring(lastComma + 1);
-                }
-                return totalStr.replace(/,/g, '');
-            })();
-            const scanTotal = /^[\d.]+$/.test(totalClean) ? parseFloat(totalClean) : null;
-
-            // dbg('bill=' + billNum + ' total=' + scanTotal + ' date=' + scanDate + ' waiter=' + waiterNum);
-
-            // Validate all required fields scanned
             const missing = [];
-            if (!billNum)  missing.push('broj računa');
+            if (!billNum) missing.push('broj računa');
             if (!scanDate) missing.push('datum');
             if (!waiterNum) missing.push('konobar ID');
 
@@ -1021,7 +595,7 @@
                 scanAttempt++;
                 if (scanAttempt >= 3) {
                     scanAttempt = 0;
-                    showScanError('Nije moguće pročitati: ' + missing.join(', ') + '. Pokušajte ponovo.');
+                    showScanError('Nije moguće pročitati: ' + missing.join(', '));
                 } else {
                     status.style.background = 'rgba(150,80,0,0.8)';
                     status.textContent = '⚠ Nedostaje: ' + missing.join(', ') + ' (' + scanAttempt + '/3)';
@@ -1031,59 +605,21 @@
                 return;
             }
 
-            // All fields found — populate hidden inputs and info display
-            document.getElementById('mTargetDate').value = scanDate;
-            document.getElementById('mWaiterId').value   = waiterNum;
-            document.getElementById('mScannedDate').textContent   = dateStr;
-            document.getElementById('mScannedWaiter').textContent = waiterNum;
-            document.getElementById('mScannedInfo').style.display = 'block';
-
-            // We have a bill number — verify total against DB
-            const date     = scanDate;
-            const waiterId = String(waiterNum);
-            const totalRes  = await fetch(`${API_BASE}/bills/total?target_date=${date}&waiter_id=${waiterId}&bill_number=${billNum}`);
-            const totalData = await totalRes.json();
-            const dbTotal   = totalData.total !== null ? parseFloat(totalData.total) : null;
-            // dbg('dbTotal=' + dbTotal);
-
-            if (dbTotal === null) {
-                // Bill not in DB — let mAddBill handle the error message
-                scanAttempt = 0;
-                document.getElementById('mBillInput').value = billNum;
-                const result = await mAddBill();
-                box.style.display = 'none';
-                handleAddResult(result, billNum);
-                return;
+            // Update global date/waiter from first scan
+            if (!mTargetDate) {
+                mTargetDate = scanDate;
+                mWaiterId = String(waiterNum);
+                document.getElementById('mScannedDate').textContent = parts[2];
+                document.getElementById('mScannedWaiter').textContent = waiterNum;
+                document.getElementById('mScannedInfo').style.display = 'block';
             }
 
-            // Compare totals (round to 2 decimals to avoid float issues)
-            const totalsMatch = scanTotal === null ||
-                Math.abs(Math.round(scanTotal * 100) - Math.round(dbTotal * 100)) <= 1;
-
-            if (!totalsMatch) {
-                scanAttempt++;
-                dbg('total mismatch scan=' + scanTotal + ' db=' + dbTotal + ' attempt=' + scanAttempt);
-                if (scanAttempt >= 3) {
-                    scanAttempt = 0;
-                    showScanError('Iznos ne odgovara (skenirano: ' + scanTotal + ', u bazi: ' + dbTotal + '). Unesite ručno.');
-                } else {
-                    status.style.background = 'rgba(150,80,0,0.8)';
-                    status.textContent = '⚠ Iznos ne odgovara ' + scanTotal + '≠' + dbTotal + ' (' + scanAttempt + '/3) — ponovi';
-                    status.classList.add('visible');
-                    setTimeout(() => { status.classList.remove('visible'); captureBtn.disabled = false; }, 2500);
-                }
-                return;
-            }
-
-            // All good — add the bill
+            // Add bill
             scanAttempt = 0;
-            document.getElementById('mBillInput').value = billNum;
-            const result = await mAddBill();
-            box.style.display = 'none';
+            const result = await mAddBill(billNum, scanDate, String(waiterNum));
             handleAddResult(result, billNum);
 
         } catch (err) {
-            dbg('CATCH: ' + err.message);
             status.style.background = 'rgba(180,0,0,0.8)';
             status.textContent = '✕ ' + err.message;
             status.classList.add('visible');
@@ -1091,28 +627,8 @@
         }
     }
 
-
-    async function loadMaxDate() {
-        // Add delay to ensure page is ready
-        await new Promise(r => setTimeout(r, 500));
-
-        try {
-            const res = await fetch(`${API_BASE}/bills/max-date`);
-            const data = await res.json();
-            console.log('Max date response:', data); // Debug
-            if (data && data.max_date) {
-                const d = data.max_date.includes('T') ? data.max_date.split('T')[0] : data.max_date;
-                console.log('Setting mTargetDate to:', d);
-                document.getElementById('mTargetDate').value = d;
-            }
-        } catch (err) {
-            console.error('loadMaxDate error:', err);
-            document.getElementById('mTargetDate').value = new Date().toISOString().split('T')[0];
-        }
-        await mNovo();
-    }
-
-    loadMaxDate();
+    // Init
+    mNovo();
 </script>
 </body>
 </html>
