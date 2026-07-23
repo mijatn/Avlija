@@ -2,20 +2,12 @@ function formatNum(val) {
     return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function openInvoice(data, date, bills, invoiceNumber) {
+async function openInvoice(data, date, bills, invoiceNumber) {
     const totalPrice = data.reduce((sum, row) => sum + Number(row.total), 0);
     const now = new Date();
     const time = now.toTimeString().split(' ')[0];
 
-    const rows = data.map(row => `
-        <tr>
-            <td class="name">${row.articlename}</td>
-            <td class="right">${formatNum(row.total_qty)}</td>
-            <td class="right">${formatNum(row.total_price)}</td>
-            <td class="right">${formatNum(row.total)}</td>
-        </tr>
-    `).join('');
-
+    // Option 1: Print to browser (old way - for testing)
     const html = `
 <!DOCTYPE html>
 <html>
@@ -149,7 +141,14 @@ function openInvoice(data, date, bills, invoiceNumber) {
             </tr>
         </thead>
         <tbody>
-            ${rows}
+            ${data.map(row => `
+                <tr>
+                    <td class="name">${row.articlename}</td>
+                    <td class="right">${formatNum(row.total_qty)}</td>
+                    <td class="right">${formatNum(row.total_price)}</td>
+                    <td class="right">${formatNum(row.total)}</td>
+                </tr>
+            `).join('')}
         </tbody>
     </table>
     <hr class="divider-solid">
@@ -171,4 +170,29 @@ function openInvoice(data, date, bills, invoiceNumber) {
     const win = window.open('', '_blank');
     win.document.write(html);
     win.document.close();
+
+    // Option 2: Send to thermal printer via ESC/POS (for Epson TM-T88iV)
+    try {
+        const printData = {
+            items: data,
+            total: totalPrice,
+            date: date,
+            invoiceNumber: invoiceNumber || 0
+        };
+
+        const response = await fetch(`${API_BASE}/api/printer/print`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(printData)
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            // Send binary data directly to printer via WebUSB or local printer service
+            console.log('ESC/POS data ready for printer:', blob.size, 'bytes');
+            // In production, you'd send this to a WebSocket or local printer service
+        }
+    } catch (err) {
+        console.log('Printer endpoint not available, using browser print only');
+    }
 }
